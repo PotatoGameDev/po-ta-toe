@@ -1,6 +1,5 @@
-import re
+import random
 import pygame
-from pygame.event import wait
 
 MAGIC_NUMBER = 19683
 
@@ -79,15 +78,40 @@ class Position:
         else:
             return 2
 
+    # list of available movew (col, row):
+    def available_moves(self):
+        available = []
+        for i in range(9):
+            if self._values[i] == 0:
+                col = i % 3
+                row = int(i // 3)
+
+                available.append((col, row))
+        return available
+
+
 class TicTacPotatoe:
-    def __init__(self, win):
+    def __init__(self, win, p1, p2):
         self.win = win
+        self.mouse_click_pos = None
         self.pos = Position()
         self.win_height = self.win.get_height()
         self.win_width = self.win.get_width() 
         self.board_width = self.win_height
         self.border_width = (self.win_width - self.board_width) / 2
         self.lane_width = self.board_width / 3
+        self.players = {}
+
+        if p1 == 'human':
+            self.players[1] = handle_human_move 
+        else:
+            self.players[1] = handle_ai_move
+
+        if p2 == 'human':
+            self.players[2] = handle_human_move 
+        else:
+            self.players[2] = handle_ai_move
+
 
     def draw(self):
         pygame.display.update()
@@ -107,7 +131,8 @@ class TicTacPotatoe:
         indX = int(mouseX // self.lane_width)
         indY = int(mouseY // self.lane_width)
 
-        self.pos = Position((indX, indY), hash(self.pos))
+        self.mouse_click_pos = (indX, indY)
+
 
 
     def draw_position(self):
@@ -136,9 +161,23 @@ class TicTacPotatoe:
                 col += 1
 
     def draw_board(self):
-        pygame.draw.line(self.win, (255, 255, 255) , (self.border_width + self.lane_width, 0), (self.border_width + self.lane_width, self.win_height), 5)
-        pygame.draw.line(self.win, (255, 255, 255) , (self.border_width + 2 * self.lane_width, 0), (self.border_width + 2 * self.lane_width, self.win_height), 5)
+        pygame.draw.line(self.win, (255, 255, 255), (self.border_width + self.lane_width, 0), (self.border_width + self.lane_width, self.win_height), 5)
+        pygame.draw.line(self.win, (255, 255, 255), (self.border_width + 2 * self.lane_width, 0), (self.border_width + 2 * self.lane_width, self.win_height), 5)
 
-        pygame.draw.line(self.win, (255, 255, 255) , (0, self.border_width + self.lane_width), (self.win_width, self.border_width + self.lane_width), 5)
-        pygame.draw.line(self.win, (255, 255, 255) , (0, self.border_width + 2 * self.lane_width), (self.win_width, self.border_width + 2 * self.lane_width), 5)
+        pygame.draw.line(self.win, (255, 255, 255), (0, self.border_width + self.lane_width), (self.win_width, self.border_width + self.lane_width), 5)
+        pygame.draw.line(self.win, (255, 255, 255), (0, self.border_width + 2 * self.lane_width), (self.win_width, self.border_width + 2 * self.lane_width), 5)
+
+    def update(self):
+        current_player = self.pos.whose_move()
+
+        self.pos = self.players[current_player](self.pos, self.mouse_click_pos)
+
+
+
+def handle_ai_move(pos, _):
+    move = random.choice(pos.available_moves())
+    return Position(move, hash(pos))
+
+def handle_human_move(pos, mouse):
+    return Position(mouse, hash(pos))
 
