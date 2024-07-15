@@ -144,7 +144,8 @@ class KnowledgeBase:
             elif winner == player: # winning move
                 knowledge.extend([move] * 3)
             else: # losing move
-                knowledge.remove(move)
+                if move in knowledge:
+                    knowledge.remove(move)
 
     def load(self):
         if os.path.exists('knowledge.json'):
