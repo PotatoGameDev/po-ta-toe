@@ -1,9 +1,9 @@
 import os
 import random
-from re import search
 import pygame
 import time
 import json
+
 MAGIC_NUMBER = 19683
 
 class Position:
@@ -126,10 +126,10 @@ class KnowledgeBase:
 
     def get_available_moves(self, pos):
         if pos not in self._positions:
-            self._positions[pos] = pos.available_moves()
+            self._positions[pos] = pos.available_moves() * 20
 
         if len(self._positions[pos]) == 0:
-            self._positions[pos] = pos.available_moves()
+            self._positions[pos] = pos.available_moves() * 20
 
         return self._positions[pos]
 
@@ -144,7 +144,8 @@ class KnowledgeBase:
             elif winner == player: # winning move
                 knowledge.extend([move] * 3)
             else: # losing move
-                knowledge.remove(move)
+                if move in knowledge:
+                    knowledge.remove(move)
 
     def load(self):
         if os.path.exists('knowledge.json'):
@@ -161,37 +162,34 @@ class KnowledgeBase:
 
 
 class TicTacPotatoe:
-    def __init__(self, win, knowledge, p1, p2, training):
+    def __init__(self, knowledge, p1, p2):
         self.mouse_click_pos = None
         self.pos = Position()
         self.players = {}
         self.history = []
         self.knowledge = knowledge
-
-        if not training:
-            self.win = win
-            self.win_height = self.win.get_height()
-            self.win_width = self.win.get_width() 
-            self.board_width = self.win_width
-            self.border_width = (self.win_width - self.board_width) / 2
-            self.lane_width = self.board_width / 3
+        self.win_height = 600
+        self.win_width = 600
+        self.board_width = self.win_width
+        self.border_width = (self.win_width - self.board_width) / 2
+        self.lane_width = self.board_width / 3
 
         if p1 == 'human':
             self.players[1] = handle_human_move 
         else:
-            self.players[1] = get_ai(training)
+            self.players[1] = get_ai()
 
         if p2 == 'human':
             self.players[2] = handle_human_move 
         else:
-            self.players[2] = get_ai(training)
+            self.players[2] = get_ai()
 
 
-    def draw(self):
+    def draw(self, screen):
         pygame.display.update()
-        self.win.fill((0, 0, 0)) 
-        self.draw_board()
-        self.draw_position()
+        screen.fill((0, 0, 0)) 
+        self.draw_board(screen)
+        self.draw_position(screen)
 
     def handle_click(self, pos):
         if pos[0] < self.border_width:
@@ -214,7 +212,7 @@ class TicTacPotatoe:
         return len(self.pos.available_moves()) == 0 or self.get_winner() != 0 
 
 
-    def draw_position(self):
+    def draw_position(self, screen):
         halfLane = self.lane_width / 2
         startPos = halfLane
         row = 0
@@ -226,10 +224,10 @@ class TicTacPotatoe:
             centerY = startPos + offY
 
             if s == 'X':
-                pygame.draw.line(self.win, (255, 255, 255) , (centerX - halfLane, centerY - halfLane), (centerX + halfLane, centerY + halfLane), 2)
-                pygame.draw.line(self.win, (255, 255, 255) , (centerX - halfLane, centerY + halfLane), (centerX + halfLane, centerY - halfLane), 2)
+                screen.draw.line((centerX - halfLane, centerY - halfLane), (centerX + halfLane, centerY + halfLane), (255, 255, 255))
+                screen.draw.line((centerX - halfLane, centerY + halfLane), (centerX + halfLane, centerY - halfLane), (255, 255, 255))
             elif s == 'O':
-                pygame.draw.circle(self.win, (255, 255, 255), (centerX, centerY), halfLane, 2) 
+                screen.draw.circle((centerX, centerY), halfLane, (255, 255, 255)) 
             else:
                 pass
 
@@ -239,12 +237,12 @@ class TicTacPotatoe:
             else:
                 col += 1
 
-    def draw_board(self):
-        pygame.draw.line(self.win, (255, 255, 255), (self.border_width + self.lane_width, 0), (self.border_width + self.lane_width, self.win_height), 5)
-        pygame.draw.line(self.win, (255, 255, 255), (self.border_width + 2 * self.lane_width, 0), (self.border_width + 2 * self.lane_width, self.win_height), 5)
+    def draw_board(self, screen):
+        screen.draw.line((self.border_width + self.lane_width, 0), (self.border_width + self.lane_width, self.win_height), (255, 255, 255))
+        screen.draw.line((self.border_width + 2 * self.lane_width, 0), (self.border_width + 2 * self.lane_width, self.win_height), (255, 255, 255))
 
-        pygame.draw.line(self.win, (255, 255, 255), (0, self.border_width + self.lane_width), (self.win_width, self.border_width + self.lane_width), 5)
-        pygame.draw.line(self.win, (255, 255, 255), (0, self.border_width + 2 * self.lane_width), (self.win_width, self.border_width + 2 * self.lane_width), 5)
+        screen.draw.line((0, self.border_width + self.lane_width), (self.win_width, self.border_width + self.lane_width), (255, 255, 255))
+        screen.draw.line((0, self.border_width + 2 * self.lane_width), (self.win_width, self.border_width + 2 * self.lane_width), (255, 255, 255))
 
     def update(self):
         current_player = self.pos.whose_move()
@@ -258,11 +256,10 @@ class TicTacPotatoe:
         self.pos = Position(move, hash(self.pos))
         self.mouse_click_pos = None
 
-def get_ai(training):
+def get_ai():
     def handle_ai_move(pos, _, knowledge):
         move = random.choice(knowledge.get_available_moves(pos))
-        if not training:
-            time.sleep(0.5)
+        time.sleep(0.5)
         return move
 
     return handle_ai_move
