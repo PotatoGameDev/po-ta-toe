@@ -168,6 +168,7 @@ class TicTacPotatoe:
         self.players = {}
         self.history = []
         self.knowledge = knowledge
+        self.timeout = 60
 
         if not training:
             self.win = win
@@ -178,12 +179,12 @@ class TicTacPotatoe:
             self.lane_width = self.board_width / 3
 
         if p1 == 'human':
-            self.players[1] = handle_human_move 
+            self.players[1] = get_human(training)
         else:
             self.players[1] = get_ai(training)
 
         if p2 == 'human':
-            self.players[2] = handle_human_move 
+            self.players[2] = get_human(training)
         else:
             self.players[2] = get_ai(training)
 
@@ -248,9 +249,15 @@ class TicTacPotatoe:
         pygame.draw.line(self.win, (255, 255, 255), (0, self.border_width + 2 * self.lane_width), (self.win_width, self.border_width + 2 * self.lane_width), 5)
 
     def update(self):
+        if self.timeout > 0:
+            self.timeout -= 1
+            return
+
         current_player = self.pos.whose_move()
 
-        move = self.players[current_player](self.pos, self.mouse_click_pos, self.knowledge)
+        player_function = self.players[current_player]
+
+        (move, timeout) = player_function(self.pos, self.mouse_click_pos, self.knowledge)
 
         if move is None:
             return
@@ -258,18 +265,23 @@ class TicTacPotatoe:
         self.history.append((self.pos, current_player, move))
         self.pos = Position(move, hash(self.pos))
         self.mouse_click_pos = None
+        self.timeout = timeout
 
-def get_ai(training):
+
+def get_ai(_):
     def handle_ai_move(pos, _, knowledge):
         move = random.choice(knowledge.get_available_moves(pos))
-        if not training:
-            time.sleep(0.5)
-        return move
+        return (move, 0)
 
     return handle_ai_move
 
-def handle_human_move(pos, move, _):
-    if pos.is_move_valid(move):
-        return move 
-    return None
+def get_human(training):
+    def handle_human_move(pos, move, _):
+        timeout = 0
+        if not training:
+            timeout = 60
+        if pos.is_move_valid(move):
+            return (move, timeout)
+        return (None, 0)
+    return handle_human_move
 

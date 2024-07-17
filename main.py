@@ -12,7 +12,6 @@ WIDTH, HEIGHT = 600, 600
 
 # Main function
 def main():
-
     win = None
 
     argparser = argparse.ArgumentParser(description="Simple MENACE-based Tic-Tac-Toe implementation")
@@ -25,6 +24,11 @@ def main():
     run = True
     training_games = args.training_games
     training = args.training
+
+    player1 = 'human'
+    player2 = 'ai'
+
+    game_over_timer = 0
 
     scores = {
         0 : 0,
@@ -51,9 +55,8 @@ def main():
     else:
         win = pygame.display.set_mode((WIDTH, HEIGHT))
         pygame.display.set_caption("Tic Tac Toe")
-        game = TicTacPotatoe(win, knowledge, 'human', 'ai', training)
+        game = TicTacPotatoe(win, knowledge, player1, player2, training)
         game.draw()
-
 
     while run:
         if not training:
@@ -66,6 +69,19 @@ def main():
                     pos = event.pos
                     game.handle_click(pos)
 
+        if not training:
+            game.draw()
+
+        if game_over_timer == 0:
+            game.update()
+        else:
+            game_over_timer -= 1
+            if game_over_timer == 0:
+                (player1, player2) = (player2, player1)
+                game = TicTacPotatoe(win, knowledge, player1, player2, training)
+            else:
+                continue
+
         if game.ended():
             winner = game.get_winner()
 
@@ -73,20 +89,15 @@ def main():
 
             knowledge.learn(game.history, winner)
             knowledge.save()
+
             if training:
                 games_to_play -= 1
                 game = TicTacPotatoe(win, knowledge, 'ai', 'ai', training)
                 if games_to_play == 0:
                     break
                 print_training_progress(training_games - games_to_play, training_games)
-            else:
-                game = TicTacPotatoe(win, knowledge, 'human', 'ai', training)
 
-
-        game.update()
-
-        if not training:
-            game.draw()
+            game_over_timer = 120
 
     if training:
         end_time = time.time()
