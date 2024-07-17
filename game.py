@@ -106,19 +106,26 @@ class Position:
         return move in self.available_moves()
 
     def get_winner(self):
+        (first_index, _) = self.get_line()
+        if first_index is not None:
+            return self._values[first_index]
+        return 0
+
+    # Returns first and last square in the line if exists, otherwise (None, None)
+    def get_line(self):
         if self._values[4] != 0 and self._values[0] == self._values[4] and self._values[4] == self._values[8]:
-            return self._values[4]
+            return (0, 8)
         if self._values[4] != 0 and self._values[2] == self._values[4] and self._values[4] == self._values[6]:
-            return self._values[4]
+            return (2, 6) 
 
         for i in range(3):
             if self._values[i] != 0 and self._values[i] == self._values[i + 3] and self._values[i + 3] == self._values[i + 6]:
-                return self._values[i]
+                return (i, i+6)
 
             if self._values[i*3] != 0 and self._values[i*3] == self._values[i*3 + 1] and self._values[i*3 + 1] == self._values[i*3 + 2]:
-                return self._values[i*3]
+                return (i*3, i*3 + 2)
 
-        return 0
+        return (None, None)
 
 class KnowledgeBase:
     def __init__(self):
@@ -194,6 +201,35 @@ class TicTacPotatoe:
         self.win.fill((0, 0, 0)) 
         self.draw_board()
         self.draw_position()
+
+        (first, last) = self.pos.get_line()
+        if first is not None and last is not None:
+            first_col = first % 3
+            first_row = int(first // 3)
+
+            half_lane = self.lane_width / 2
+            start_pos = half_lane
+
+            first_off_x = first_col * self.lane_width
+            first_off_y = first_row * self.lane_width
+
+            start = (start_pos + first_off_x, start_pos + first_off_y) 
+
+            last_col = last % 3
+            last_row = int(last // 3)
+
+            last_off_x = last_col * self.lane_width
+            last_off_y = last_row * self.lane_width
+
+            end = (start_pos + last_off_x, start_pos + last_off_y) 
+
+            vec = ((end[0] - start[0]) * 0.2, (end[1] - start[1]) * 0.2)
+
+            start = (start[0] - vec[0], start[1] - vec[1])
+            end = (end[0] + vec[0], end[1] + vec[1])
+
+            pygame.draw.line(self.win, (255, 255, 255) , start, end, 4)
+
 
     def handle_click(self, pos):
         if pos[0] < self.border_width:
