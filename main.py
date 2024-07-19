@@ -37,6 +37,11 @@ def main():
         2 : 0
     }
 
+    scores_players = {
+        'human' : 0,
+        'ai' : 0,
+    }
+
     if training_games > 0:
         training = True
     if training and not training_games > 0:
@@ -47,6 +52,7 @@ def main():
     knowledge = KnowledgeBase()
     knowledge.load()
 
+    border_width = (WIDTH - HEIGHT) / 2
     
     clock = pygame.time.Clock()
     start_time = time.time()
@@ -55,6 +61,7 @@ def main():
         game = TicTacPotatoe(None, knowledge, 'ai', 'ai', training)
     else:
         win = pygame.display.set_mode((WIDTH, HEIGHT))
+
         pygame.display.set_caption("Tic Tac Toe")
         game = TicTacPotatoe(win, knowledge, player1, player2, training)
         game.draw()
@@ -88,6 +95,13 @@ def main():
 
             scores[winner] += 1
 
+            if winner == 1:
+                scores_players[player1] += 1
+            elif winner == 2:
+                scores_players[player2] += 1
+
+
+
             knowledge.learn(game.history, winner)
             knowledge.save()
 
@@ -99,6 +113,42 @@ def main():
                 print_training_progress(training_games - games_to_play, training_games)
 
             game_over_timer = 120
+
+        if win is not None: 
+            marker_width = border_width / 5
+            spacer_width = marker_width / 4
+
+            c, r = 0, 0
+            for _ in range(scores_players['ai']):
+                start = (c * spacer_width + (c) * marker_width, r * marker_width) 
+                end = (c * spacer_width + (c+1) * marker_width, r * marker_width + marker_width) 
+                pygame.draw.line(win, (255, 255, 255), start, end)
+
+                start = (c * spacer_width + (c+1) * marker_width, r * marker_width) 
+                end = (c * spacer_width + (c) * marker_width, r * marker_width + marker_width) 
+                pygame.draw.line(win, (255, 255, 255), start, end)
+
+                c += 1
+                if c > 3:
+                    c = 0
+                    r += 1
+
+            c, r = 0, 0
+
+            for _ in range(scores_players['human']):
+                start = (WIDTH - border_width + c * spacer_width + (c) * marker_width, r * marker_width) 
+                end = (WIDTH - border_width + c * spacer_width + (c+1) * marker_width, r * marker_width + marker_width) 
+                pygame.draw.line(win, (255, 255, 255), start, end)
+
+                start = (WIDTH - border_width + c * spacer_width + (c+1) * marker_width, r * marker_width) 
+                end = (WIDTH - border_width + c * spacer_width + (c) * marker_width, r * marker_width + marker_width) 
+                pygame.draw.line(win, (255, 255, 255), start, end)
+
+                c += 1
+                if c > 3:
+                    c = 0
+                    r += 1
+        
 
     if training:
         end_time = time.time()
@@ -117,7 +167,6 @@ def print_training_progress(game, total, bar_length= 40):
 
     sys.stdout.write(f"\r[{arrow}{spaces}] {int(round(percent * 100))}%")
     sys.stdout.flush()
-
 
 if __name__ == "__main__":
     main()
