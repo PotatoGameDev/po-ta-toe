@@ -1,8 +1,6 @@
 import os
 import random
-from re import search
 import pygame
-import time
 import json
 MAGIC_NUMBER = 19683
 
@@ -181,10 +179,9 @@ class TicTacPotatoe:
             self.win = win
             self.win_height = self.win.get_height()
             self.win_width = self.win.get_width() 
-            self.board_width = self.win_width
-            self.border_width = (self.win_width - self.board_width) / 2
+            self.border_width = (self.win_width - self.win_height) / 2
+            self.board_width = self.win_height
             self.lane_width = self.board_width / 3
-
         if p1 == 'human':
             self.players[1] = get_human(training)
         else:
@@ -199,6 +196,7 @@ class TicTacPotatoe:
     def draw(self):
         pygame.display.update()
         self.win.fill((0, 0, 0)) 
+
         self.draw_board()
         self.draw_position()
 
@@ -213,7 +211,7 @@ class TicTacPotatoe:
             first_off_x = first_col * self.lane_width
             first_off_y = first_row * self.lane_width
 
-            start = (start_pos + first_off_x, start_pos + first_off_y) 
+            start = (self.border_width + start_pos + first_off_x, start_pos + first_off_y) 
 
             last_col = last % 3
             last_row = int(last // 3)
@@ -221,7 +219,7 @@ class TicTacPotatoe:
             last_off_x = last_col * self.lane_width
             last_off_y = last_row * self.lane_width
 
-            end = (start_pos + last_off_x, start_pos + last_off_y) 
+            end = (self.border_width + start_pos + last_off_x, start_pos + last_off_y) 
 
             vec = ((end[0] - start[0]) * 0.2, (end[1] - start[1]) * 0.2)
 
@@ -258,14 +256,14 @@ class TicTacPotatoe:
         row = 0
         col = 0
         for s in self.pos:
-            offX = col * self.lane_width
+            offX = self.border_width + col * self.lane_width
             offY = row * self.lane_width
             centerX = startPos + offX
             centerY = startPos + offY
 
             if s == 'X':
-                pygame.draw.line(self.win, (255, 255, 255) , (centerX - halfLane, centerY - halfLane), (centerX + halfLane, centerY + halfLane), 2)
-                pygame.draw.line(self.win, (255, 255, 255) , (centerX - halfLane, centerY + halfLane), (centerX + halfLane, centerY - halfLane), 2)
+                pygame.draw.line(self.win, (255, 255, 255), (centerX - halfLane, centerY - halfLane), (centerX + halfLane, centerY + halfLane), 2)
+                pygame.draw.line(self.win, (255, 255, 255), (centerX - halfLane, centerY + halfLane), (centerX + halfLane, centerY - halfLane), 2)
             elif s == 'O':
                 pygame.draw.circle(self.win, (255, 255, 255), (centerX, centerY), halfLane, 2) 
             else:
@@ -281,8 +279,20 @@ class TicTacPotatoe:
         pygame.draw.line(self.win, (255, 255, 255), (self.border_width + self.lane_width, 0), (self.border_width + self.lane_width, self.win_height), 5)
         pygame.draw.line(self.win, (255, 255, 255), (self.border_width + 2 * self.lane_width, 0), (self.border_width + 2 * self.lane_width, self.win_height), 5)
 
-        pygame.draw.line(self.win, (255, 255, 255), (0, self.border_width + self.lane_width), (self.win_width, self.border_width + self.lane_width), 5)
-        pygame.draw.line(self.win, (255, 255, 255), (0, self.border_width + 2 * self.lane_width), (self.win_width, self.border_width + 2 * self.lane_width), 5)
+        pygame.draw.line(
+                self.win,
+                (255, 255, 255), 
+                (self.border_width, self.lane_width), 
+                (self.win_width - self.border_width, self.lane_width), 
+                5
+        )
+        pygame.draw.line(
+                self.win, 
+                (255, 255, 255), 
+                (self.border_width, 2 * self.lane_width),
+                (self.win_width - self.border_width, 2 * self.lane_width),
+                5
+        )
 
     def update(self):
         if self.timeout > 0:

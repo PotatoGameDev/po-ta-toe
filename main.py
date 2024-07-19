@@ -8,7 +8,7 @@ from game import KnowledgeBase, TicTacPotatoe
 pygame.init()
 
 # Set up display
-WIDTH, HEIGHT = 600, 600
+WIDTH, HEIGHT = 800, 600
 # WIDTH, HEIGHT = 60, 60
 
 # Main function
