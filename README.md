@@ -7,10 +7,8 @@ This project is a simple implementation of the classic Tic-Tac-Toe game using Py
 The AI can be trained through self-play to improve its performance over time.
 
 ## Why?
-
-The motivation behind this project is to explore the concept of machine learning through a historical lens by implementing MENACE, one of the earliest examples of an AI for games.
-MENACE was originally designed by Donald Michie in 1961 and serves as a fascinating case study in reinforcement learning.
-This project aims to provide an educational and interactive way to understand the principles of AI and machine learning.
+If you are interested in doing some experiments with AI, maybe introducing your own algorithm that could beat mine, this project is a nice starter!
+Have fun!
 
 ## Quick Start
 
